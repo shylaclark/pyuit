@@ -5,7 +5,7 @@ import panel as pn
 
 from uit.uit import Client, HPC_SYSTEMS, UITError
 
-log = logging.getLogger(f'pyuit.{__name__}')
+log = logging.getLogger(__name__)
 
 
 class HpcAuthenticate(param.Parameterized):
@@ -66,10 +66,8 @@ class HpcConnect(param.Parameterized):
     _next_stage = param.Selector()
     next_stage = param.Selector()
 
-    def __init__(self, uit_client=None, **params):
+    def __init__(self, **params):
         super().__init__(**params)
-        self.uit_client = uit_client or Client()
-        self.update_node_options()
         self.advanced_pn = None
         self.system_pn = pn.Column(
             pn.panel(self, parameters=['system'], show_name=False),
@@ -77,9 +75,9 @@ class HpcConnect(param.Parameterized):
             name='HPC System',
         )
 
-    @param.depends('system', watch=True)
+    @param.depends('system', 'uit_client', watch=True)
     def update_node_options(self):
-        if self.uit_client.login_nodes:
+        if self.uit_client is not None:
             options = self.uit_client.login_nodes[self.system]
             self.param.exclude_nodes.objects = options
             options = options.copy()
